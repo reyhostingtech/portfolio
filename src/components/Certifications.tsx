@@ -1,5 +1,5 @@
 import React from 'react';
-import { Award, ShieldCheck, Cpu, Globe, ExternalLink } from 'lucide-react';
+import { Award, ShieldCheck, Cpu, Globe, ExternalLink, Palette, TrendingUp } from 'lucide-react';
 import { certifications, Certification } from '../portfolioConfig';
 
 export default function Certifications() {
@@ -7,7 +7,9 @@ export default function Certifications() {
     ShieldCheck: ShieldCheck,
     Cpu: Cpu,
     Globe: Globe,
-    Award: Award
+    Award: Award,
+    Palette: Palette,
+    TrendingUp: TrendingUp
   };
 
   return (
@@ -21,16 +23,16 @@ export default function Certifications() {
             <span>CREDENTIAL VERIFICATION</span>
           </div>
           <h2 className="font-display font-bold text-3xl sm:text-4xl text-slate-900 dark:text-white tracking-tight">
-            Industry Certifications
+            Industry Certifications & Credentials
           </h2>
           <div className="w-12 h-1 bg-blue-600 dark:bg-blue-500 rounded mx-auto mt-4" />
           <p className="mt-4 font-sans text-sm text-slate-500 dark:text-slate-400">
-            Professional qualifications demonstrating certified knowledge of server hosting frameworks, DNS architecture, and enterprise cloud productivity.
+            Professional qualifications demonstrating certified knowledge of server hosting frameworks, DNS architecture, WordPress/CMS engineering, SEO, and brand asset management.
           </p>
         </div>
 
         {/* Certifications Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto" id="certifications-grid">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto" id="certifications-grid">
           {certifications.map((cert, idx) => {
             const IconComponent = iconMap[cert.iconName] || Award;
             return (

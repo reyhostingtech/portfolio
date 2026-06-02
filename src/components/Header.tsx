@@ -18,6 +18,7 @@ export default function Header({ isDarkMode, toggleDarkMode }: HeaderProps) {
     { label: 'Skills', href: '#skills', id: 'skills' },
     { label: 'Reviews', href: '#reviews', id: 'reviews' },
     { label: 'Experience', href: '#experience', id: 'experience' },
+    { label: 'Certifications', href: '#certifications', id: 'certifications' },
     { label: 'Projects', href: '#projects', id: 'projects' },
     { label: 'Resume', href: '#resume', id: 'resume' },
     { label: 'Contact', href: '#contact', id: 'contact' },

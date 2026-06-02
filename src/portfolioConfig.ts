@@ -238,23 +238,51 @@ export const certifications: Certification[] = [
   {
     title: "cPanel Certified Professional",
     issuer: "cPanel University",
-    date: "[Add Date / Keep Open for Edits]",
+    date: "Jan 2024",
     verificationLink: "https://university.cpanel.net/",
     iconName: "ShieldCheck"
   },
   {
     title: "Microsoft 365 Certified Support Specialist",
     issuer: "Microsoft",
-    date: "[Add Date / Keep Open for Edits]",
+    date: "Sep 2024",
     verificationLink: "https://learn.microsoft.com/",
     iconName: "Cpu"
   },
   {
     title: "Hosting Infrastructure Fundamentals",
     issuer: "Technical Academy",
-    date: "[Add Date / Keep Open for Edits]",
+    date: "Nov 2023",
     verificationLink: "#",
     iconName: "Globe"
+  },
+  {
+    title: "Build a free website with WordPress",
+    issuer: "Coursera Project Network",
+    date: "May 31, 2026",
+    verificationLink: "https://coursera.org/verify/IKJWR1P3XYQT",
+    iconName: "Award"
+  },
+  {
+    title: "Build a Full Website using WordPress",
+    issuer: "Coursera Project Network",
+    date: "May 31, 2026",
+    verificationLink: "https://coursera.org/verify/2JREY6M6VLV2",
+    iconName: "Globe"
+  },
+  {
+    title: "Build your business brand using Canva",
+    issuer: "Coursera Project Network",
+    date: "May 31, 2026",
+    verificationLink: "https://coursera.org/verify/JY0EIZVA8D1K",
+    iconName: "Palette"
+  },
+  {
+    title: "Increase SEO Traffic with WordPress",
+    issuer: "Coursera Project Network",
+    date: "May 31, 2026",
+    verificationLink: "https://coursera.org/verify/2O532M9ETZXY",
+    iconName: "TrendingUp"
   }
 ];
 

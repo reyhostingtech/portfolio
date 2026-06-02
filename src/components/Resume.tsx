@@ -93,7 +93,7 @@ export default function Resume() {
               </p>
             </div>
 
-            {/* Grid splits: Experience left, Education/Skills right */}
+            {/* Grid splits: Experience left, Stack/Specialization right */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-4 border-t border-slate-150 dark:border-slate-800">
               
               {/* Left Column: Work History */}
@@ -119,7 +119,7 @@ export default function Resume() {
                         </span>
                       </div>
 
-                      <ul className="list-disc list-outside pl-4 space-y-1.5 font-sans text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                      <ul className="list-disc list-outside pl-4 space-y-1.5 font-sans text-xs text-slate-600 dark:text-slate-350 leading-relaxed font-normal">
                         {exp.achievements.map((ach, aIdx) => (
                           <li key={aIdx}>{ach}</li>
                         ))}
@@ -130,7 +130,7 @@ export default function Resume() {
 
               </div>
 
-              {/* Right Column: Technical Core and Education */}
+              {/* Right Column: Technical Core and Specializations */}
               <div className="lg:col-span-4 space-y-6">
                 
                 {/* Core Expertise Bullet points */}
@@ -148,23 +148,6 @@ export default function Resume() {
                         {pill}
                       </span>
                     ))}
-                  </div>
-                </div>
-
-                {/* Education Section */}
-                <div className="space-y-3">
-                  <h3 className="font-display font-extrabold text-sm sm:text-base text-slate-900 dark:text-white uppercase tracking-wide">
-                    Education
-                  </h3>
-
-                  <div>
-                    <h4 className="font-display font-bold text-xs text-slate-900 dark:text-white leading-tight">
-                      Bachelor of Science in Information Technology
-                    </h4>
-                    <p className="font-sans text-[11px] text-slate-550 dark:text-slate-400 mt-0.5">
-                      Cebu Institute of Technology-University
-                    </p>
-                    <span className="font-mono text-[9px] text-slate-400 font-bold">Graduated 2020</span>
                   </div>
                 </div>
 
