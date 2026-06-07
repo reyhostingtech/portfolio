@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Sun, Moon, Server, Terminal } from 'lucide-react';
+import { Menu, X, Sun, Moon, Server, Terminal, Palette } from 'lucide-react';
 import { portfolioInfo } from '../portfolioConfig';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 
 interface HeaderProps {
   isDarkMode: boolean;
@@ -11,6 +12,10 @@ export default function Header({ isDarkMode, toggleDarkMode }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const isHomePage = location.pathname === '/';
 
   const navigationItems = [
     { label: 'Home', href: '#home', id: 'home' },
@@ -28,15 +33,17 @@ export default function Header({ isDarkMode, toggleDarkMode }: HeaderProps) {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
 
-      // Detect active section on scroll
-      const scrollPosition = window.scrollY + 120;
-      for (const item of navigationItems) {
-        const el = document.getElementById(item.id);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            setActiveSection(item.id);
+      // Detect active section on scroll only on home page
+      if (isHomePage) {
+        const scrollPosition = window.scrollY + 120;
+        for (const item of navigationItems) {
+          const el = document.getElementById(item.id);
+          if (el) {
+            const top = el.offsetTop;
+            const height = el.offsetHeight;
+            if (scrollPosition >= top && scrollPosition < top + height) {
+              setActiveSection(item.id);
+            }
           }
         }
       }
@@ -44,10 +51,37 @@ export default function Header({ isDarkMode, toggleDarkMode }: HeaderProps) {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isHomePage]);
+
+  useEffect(() => {
+    // If navigating to home from another page with a hash, handle scroll after mount
+    if (isHomePage && location.hash) {
+      setTimeout(() => {
+        const targetId = location.hash.replace('#', '');
+        const element = document.getElementById(targetId);
+        if (element) {
+          const offset = 80;
+          const bodyRect = document.body.getBoundingClientRect().top;
+          const elementRect = element.getBoundingClientRect().top;
+          window.scrollTo({
+            top: elementRect - bodyRect - offset,
+            behavior: 'smooth',
+          });
+        }
+      }, 100);
+    }
+  }, [isHomePage, location.hash]);
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     e.preventDefault();
+    if (!isHomePage) {
+      // If we are not on the home page, navigate to home with the hash
+      navigate('/' + href);
+      setIsOpen(false);
+      return;
+    }
+
+    // Scroll behavior for home page
     const targetId = href.replace('#', '');
     const element = document.getElementById(targetId);
     if (element) {
@@ -122,6 +156,19 @@ export default function Header({ isDarkMode, toggleDarkMode }: HeaderProps) {
               </a>
             ))}
 
+            <Link
+              to="/templates"
+              onClick={() => setIsOpen(false)}
+              className={`px-3 py-2 rounded-md font-sans text-sm font-medium transition-all duration-200 ${
+                !isHomePage
+                  ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 font-semibold'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50'
+              } flex items-center space-x-1`}
+            >
+              <Palette className="w-4 h-4" />
+              <span>Templates</span>
+            </Link>
+
             {/* Dark & Light Theme Switcher */}
             <button
               onClick={toggleDarkMode}
@@ -182,6 +229,19 @@ export default function Header({ isDarkMode, toggleDarkMode }: HeaderProps) {
             </a>
           ))}
           
+          <Link
+            to="/templates"
+            onClick={() => setIsOpen(false)}
+            className={`block px-4 py-2.5 rounded-lg text-base font-medium transition-colors flex items-center space-x-2 ${
+              !isHomePage
+                ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 font-bold'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Palette className="w-5 h-5" />
+            <span>Templates</span>
+          </Link>
+
           <div className="pt-2 px-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
             <span>Currently Active: Cebu, PH</span>
             <span className="flex items-center text-emerald-500 font-mono">

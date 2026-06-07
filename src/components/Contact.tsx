@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, MapPin, Linkedin, Github, Send, CheckCircle, TicketCheck, MessageSquarePlus, Terminal } from 'lucide-react';
 import { portfolioInfo } from '../portfolioConfig';
+import { initAuth, googleSignIn, getAccessToken } from '../lib/auth';
+import type { User } from 'firebase/auth';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -15,6 +17,10 @@ export default function Contact() {
   const [isSubmitSuccessful, setIsSubmitSuccessful] = useState(false);
   const [ticketId, setTicketId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [needsAuth, setNeedsAuth] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   const categories = [
     { label: 'Recruitment / Job Offer', value: 'Recruitment' },
@@ -23,6 +29,59 @@ export default function Contact() {
     { label: 'General / Support Consultation', value: 'General Inquiry' }
   ];
 
+  useEffect(() => {
+    const unsubscribe = initAuth(
+      (user, t) => {
+        setUser(user);
+        setToken(t);
+        setNeedsAuth(false);
+        // Pre-fill email from auth if not already set or if it's the default
+        setFormData(prev => ({ ...prev, email: prev.email || user.email || '' }));
+      },
+      () => setNeedsAuth(true)
+    );
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    setIsLoggingIn(true);
+    try {
+      const result = await googleSignIn();
+      if (result) {
+        setToken(result.accessToken);
+        setUser(result.user);
+        setNeedsAuth(false);
+        setFormData(prev => ({ ...prev, email: prev.email || result.user.email || '' }));
+      }
+    } catch (err) {
+      console.error('Login failed:', err);
+      alert('Failed to sign in. Please allow popup and try again.');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const encodeBase64Url = (str: string) => {
+    // encode utf-8 string to base64url
+    return btoa(unescape(encodeURIComponent(str)))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+  };
+
+  const constructEmailPayload = (to: string, subject: string, message: string) => {
+    const encodedSubject = `=?utf-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`;
+    const emailLines = [
+      `To: ${to}`,
+      `Subject: ${encodedSubject}`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/plain; charset=utf-8',
+      '',
+      message
+    ];
+    return encodeBase64Url(emailLines.join('\r\n'));
+  };
+
   const handleInputUpdate = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
@@ -30,22 +89,24 @@ export default function Contact() {
     });
   };
 
-  const executeSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const executeSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) return;
 
+    if (needsAuth || !token) {
+      await handleLogin();
+      return;
+    }
+
+    const confirmed = window.confirm(`Ready to send this email via your Gmail account (${user?.email}) to ${portfolioInfo.email}?`);
+    if (!confirmed) return;
+
     setIsSubmitting(true);
 
-    // Simulate submission delay
-    setTimeout(() => {
-      // Allocate a randomized support ticket sequence
+    try {
       const seed = Math.floor(1000 + Math.random() * 9000);
       const generatedTicket = `INC-2026-REYP-${seed}`;
-      setTicketId(generatedTicket);
-      setIsSubmitting(false);
-      setIsSubmitSuccessful(true);
-
-      // Construct mailto link
+      
       const subject = `[${generatedTicket}] Support/Recruitment Inquiry - ${formData.name}`;
       const body = `Hi Rey,
 
@@ -62,23 +123,42 @@ ${formData.message}
 ---
 Generated Support Ticket ID: ${generatedTicket}`;
 
-      const mailtoUrl = `mailto:${portfolioInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-      
-      // Auto open mailto after ticket is generated
-      window.location.href = mailtoUrl;
-    }, 1200);
+      const rawEmail = constructEmailPayload(portfolioInfo.email, subject, body);
+
+      const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ raw: rawEmail }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send email');
+      }
+
+      setTicketId(generatedTicket);
+      setIsSubmitSuccessful(true);
+    } catch (err) {
+      console.error(err);
+      alert('Error sending email. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const resetTicketingForm = () => {
     setFormData({
       name: '',
-      email: '',
+      email: user?.email || '',
       role: 'Recruiter / Employer',
       category: 'General Inquiry',
       message: '',
     });
     setIsSubmitSuccessful(false);
   };
+
 
   const triggerDirectMailto = () => {
     if (!formData.name || !formData.email || !formData.message) {
@@ -295,17 +375,17 @@ ${formData.message}`;
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full sm:w-auto px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-98 text-white font-sans font-semibold text-xs sm:text-sm shadow shadow-blue-500/15 cursor-pointer disabled:opacity-50 transition-all flex items-center justify-center space-x-2"
+                      className="w-full sm:w-auto px-6 py-3 rounded-lg bg-red-600 hover:bg-red-700 active:scale-98 text-white font-sans font-semibold text-xs sm:text-sm shadow shadow-red-500/15 cursor-pointer disabled:opacity-50 transition-all flex items-center justify-center space-x-2"
                     >
                       {isSubmitting ? (
                         <>
                           <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin shrink-0" />
-                          <span>Generating ticket ID...</span>
+                          <span>Sending via Gmail...</span>
                         </>
                       ) : (
                         <>
-                          <Send className="w-4 h-4 shrink-0" />
-                          <span>Submit & Launch Mail</span>
+                          <svg className="w-4 h-4 shrink-0 bg-white rounded-sm p-0.5" viewBox="0 0 24 24"><path fill="#EA4335" d="M24 5.4v13.2c0 1.1-.9 2-2 2H20v-9.4L12 17l-8-5.8v9.4H2c-1.1 0-2-.9-2-2V5.4c0-1.4 1.6-2.2 2.8-1.5L12 10.6l9.2-6.7c1.2-.7 2.8.1 2.8 1.5z"></path></svg>
+                          <span>Send via Gmail</span>
                         </>
                       )}
                     </button>
@@ -327,10 +407,10 @@ ${formData.message}`;
 
                   <div>
                     <h3 className="font-display font-extrabold text-lg sm:text-xl text-slate-900 dark:text-white">
-                      Support Ticket Successfully Queued and Sent!
+                      Email Successfully Sent via Gmail!
                     </h3>
                     <p className="font-sans text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-2 leading-relaxed font-normal">
-                      Your query has been formatted and pushed to your email dispatcher. A copy is ready for direct review.
+                      Your query has been securely delivered directly from your Gmail account to Rey's inbox.
                     </p>
                   </div>
 
@@ -351,29 +431,18 @@ ${formData.message}`;
                     </div>
 
                     <div className="text-[10px] space-y-1 text-slate-400 pt-2 font-normal border-t border-slate-900 leading-relaxed">
-                      <div><strong className="text-slate-300">Target host:</strong> {formData.email}</div>
+                      <div><strong className="text-slate-300">Target host:</strong> {portfolioInfo.email}</div>
                       <div><strong className="text-slate-300">Category:</strong> {formData.category}</div>
                       <div><strong className="text-slate-300">Estimated Response:</strong> Standard Business Review</div>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => {
-                        const subject = `[${ticketId}] Support/Recruitment Inquiry - ${formData.name}`;
-                        const body = `Hi Rey,\n\nName: ${formData.name}\nEmail: ${formData.email}\nCategory: ${formData.category}\n\nMessage:\n${formData.message}`;
-                        window.location.href = `mailto:${portfolioInfo.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                      }}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold text-xs rounded-lg cursor-pointer transition-colors"
-                    >
-                      Open Email App Again
-                    </button>
-
+                  <div className="flex items-center justify-center space-x-3">
                     <button
                       onClick={resetTicketingForm}
-                      className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-350 hover:bg-slate-100 dark:hover:bg-slate-900 font-sans font-bold text-xs cursor-pointer transition-colors"
+                      className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-sans font-bold text-xs cursor-pointer transition-colors"
                     >
-                      Create another ticket
+                      Send another message
                     </button>
                   </div>
 
