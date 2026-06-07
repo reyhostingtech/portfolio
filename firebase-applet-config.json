@@ -1,8 +1,9 @@
 {
-  "apiKey": "mock-api-key",
-  "authDomain": "mock-auth-domain.firebaseapp.com",
-  "projectId": "mock-project-id",
-  "storageBucket": "mock-project-id.appspot.com",
-  "messagingSenderId": "123456789",
-  "appId": "1:123456789:web:abcdef"
+  "projectId": "organic-voyager-mr4g1",
+  "appId": "1:60728786077:web:3cbd228c69c3c672faa874",
+  "apiKey": "AIzaSyC5YgFXhWj-loZ7MhlzYlnsZ3AoGjhgdQY",
+  "authDomain": "organic-voyager-mr4g1.firebaseapp.com",
+  "storageBucket": "organic-voyager-mr4g1.firebasestorage.app",
+  "messagingSenderId": "60728786077",
+  "measurementId": ""
 }
